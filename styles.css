@@ -1,0 +1,401 @@
+/* =========================================================
+   AllWays — Landing Page (First Screen)
+   Owner: Landing page module only.
+   Do NOT edit landingpage-filtering.component — see script.js
+   for the integration hook that connects to it.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Font: APHont (official AllWays brand font, user-provided)
+   Files live in ./assets/fonts/ — ship this folder together
+   with index.html / styles.css / script.js.
+   --------------------------------------------------------- */
+@font-face {
+  font-family: 'APHont';
+  src: url('assets/fonts/APHont-Regular.woff2') format('woff2'),
+       url('assets/fonts/APHont-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'APHont';
+  src: url('assets/fonts/APHont-Bold.woff2') format('woff2'),
+       url('assets/fonts/APHont-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'APHont';
+  src: url('assets/fonts/APHont-Italic.woff2') format('woff2'),
+       url('assets/fonts/APHont-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'APHont';
+  src: url('assets/fonts/APHont-BoldItalic.woff2') format('woff2'),
+       url('assets/fonts/APHont-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  /* Brand tokens */
+  --color-bg: #F0F2F5;        /* Cool White */
+  --color-primary: #0046FF;   /* Primary Blue */
+  --color-accent: #FF8040;    /* Accent Orange */
+  --color-text: #101828;
+  --color-text-muted: #5B6472;
+  --color-white: #FFFFFF;
+
+  --font-family-base: 'APHont', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Noto Sans', Helvetica, Arial, sans-serif;
+
+  --page-max-width: 1440px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-family-base);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------------------------------------------------------
+   Hero / first screen
+   --------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 72px 0;
+  background: var(--color-bg);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.hero__logo {
+  display: block;
+  width: 520px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 4px;
+  user-select: none;
+  animation: fadeInDown 0.7s ease both;
+}
+
+/* Tagline under the logo — a bit more presence than a tiny caption,
+   but well below a Marble-style oversized headline */
+.hero__slogan {
+  margin: 0 0 40px;
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+  animation: fadeInUp 0.7s 0.1s ease both;
+}
+
+/* Rotating greetings */
+.greeting {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 44px;
+  animation: fadeInUp 0.7s 0.2s ease both;
+}
+
+.greeting__text {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  display: inline-block;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.greeting__text::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  vertical-align: middle;
+}
+
+.greeting__text.is-hidden {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* -----------------------------------------------------
+   Google Sign-In
+   -----------------------------------------------------
+   #gSignInBtn holds Google's own rendered button once
+   Identity Services loads (its internal iframe styles
+   itself — do not restyle it). .google-btn-fallback is our
+   stand-in with the same visual spec, shown until then;
+   note we deliberately keep Google's official colors/logo
+   here rather than the brand's blue, per Google's sign-in
+   branding guidelines.
+   ----------------------------------------------------- */
+.google-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  animation: fadeInUp 0.7s 0.3s ease both;
+}
+
+.google-btn-fallback {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px; /* HIG: keep touch targets comfortably above 44pt */
+  padding: 13px 28px;
+  border: 1px solid #DADCE0;
+  border-radius: 999px;
+  background: var(--color-white);
+  color: #3C4043;
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+/* Toss-style "press dim": a soft dark overlay fades in/out instead of a
+   hard color swap, and the button settles slightly on press. */
+.google-btn-fallback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.google-btn-fallback:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.google-btn-fallback:hover::after {
+  opacity: 0.03;
+}
+
+.google-btn-fallback:active {
+  transform: scale(0.98);
+}
+
+.google-btn-fallback:active::after {
+  opacity: 0.08;
+}
+
+.google-btn-fallback:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* Member count */
+.hero__stats {
+  margin: 28px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  animation: fadeInUp 0.8s 0.55s ease both;
+}
+
+/* Faint background map/route motif. Each shape's own faint opacity is
+   set directly on the SVG element (kept intentionally low so it never
+   competes with the content in front); this just fades the whole layer
+   in on load. */
+.hero__map-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: fadeInMap 1.6s ease both;
+}
+
+@keyframes fadeInMap {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------------------------------------------------------
+   Animations
+   --------------------------------------------------------- */
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__logo,
+  .hero__slogan,
+  .greeting,
+  .hero__cta {
+    animation: none;
+  }
+  .greeting__text {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------
+   Responsive (design baseline is Desktop 1440px)
+   --------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .hero__logo {
+    width: 160px;
+  }
+  .hero__slogan {
+    font-size: 18px;
+  }
+}
+
+/* ---------------------------------------------------------
+   Site footer — common band, shown at the bottom of every
+   screen (not just this landing page).
+   Owner: 명진 · portable source + standalone demo live in
+   components/site-footer/ — copy that markup/CSS as-is into
+   other screens; this block just wires it into this page's
+   existing brand tokens (--color-bg / --color-primary / ...)
+   and APHont font-face already declared above.
+   --------------------------------------------------------- */
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  background: var(--color-bg);
+  border-top: 1px solid rgba(16, 24, 40, 0.08);
+  padding: 28px 24px 24px;
+}
+
+.site-footer__inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.site-footer__logo {
+  display: block;
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 6px;
+  user-select: none;
+}
+
+.site-footer__slogan {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+}
+
+.site-footer__divider {
+  width: 28px;
+  height: 1px;
+  background: rgba(16, 24, 40, 0.12);
+  margin: 0 0 10px;
+}
+
+.site-footer__info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.site-footer__info-item {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.site-footer__info-item--team {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.site-footer__info-sep {
+  color: rgba(16, 24, 40, 0.24);
+  font-size: 11.5px;
+}
+
+@media (max-width: 640px) {
+  .site-footer__logo {
+    width: 96px;
+  }
+  .site-footer__info {
+    gap: 6px 6px;
+  }
+  .site-footer__info-item,
+  .site-footer__info-sep {
+    font-size: 10.5px;
+  }
+}

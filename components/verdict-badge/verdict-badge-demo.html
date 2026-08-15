@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Verdict Badge — Demo (1440px desktop)</title>
+<link rel="stylesheet" href="verdict-badge.css" />
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f7f8f9;
+    color: #202124;
+  }
+  .frame {
+    width: 1440px;
+    margin: 0 auto;
+    padding: 40px 64px 140px;
+    box-sizing: border-box;
+    background: #ffffff;
+    min-height: 100vh;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .subtitle { color: #5f6368; font-size: 13px; margin: 0 0 32px; }
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5f6368;
+    margin: 0 0 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e6e8eb;
+  }
+  .hint { font-size: 12px; color: #80868b; margin: 8px 0 20px; }
+  .size-block-title { font-size: 12px; color: #80868b; margin: 20px 0 10px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; padding-top: 8px; }
+  .cell {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 40px 16px 16px;
+    border: 1px solid #e6e8eb;
+    border-radius: 8px;
+    min-width: 180px;
+    align-items: flex-start;
+  }
+  .cell code { font-size: 11px; color: #80868b; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eceef0; }
+  th { color: #5f6368; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .mock-detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border: 1px solid #e6e8eb; border-radius: 10px;
+  }
+  .mock-detail-header h3 { margin: 0; font-size: 18px; }
+  .mock-card {
+    width: 280px; border: 1px solid #e6e8eb; border-radius: 10px; padding: 16px;
+    padding-top: 44px;
+  }
+  .mock-card .mock-card-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Verdict Badge</h1>
+    <p class="subtitle">Owner: 명진 · Desktop reference width: 1440px · All labels in English · Built from 아이콘_판정배지_기본 / _상세정보 / _커서댔을때</p>
+
+    <section>
+      <h2>1. Default — 기본</h2>
+      <p class="hint">Icon + short label + color. No border. This is what always renders on the page.</p>
+      <div id="default-row" class="row"></div>
+    </section>
+
+    <section>
+      <h2>2. Hover / focus — 커서 댔을 때</h2>
+      <p class="hint">Same badge, same fill — a 1px border in the same color appears on hover/focus. (Hover the badges below.)</p>
+      <div id="hover-row" class="row"></div>
+    </section>
+
+    <section>
+      <h2>3. Hover detail tooltip — 상세정보</h2>
+      <p class="hint">Hover or focus the badge to see the full state name + explanation. Not surveyed has no tooltip — there's nothing to explain about data that doesn't exist yet.</p>
+      <div id="tooltip-row" class="row" style="padding-top:120px;"></div>
+    </section>
+
+    <section>
+      <h2>4. Three sizes</h2>
+      <div id="size-matrix"></div>
+    </section>
+
+    <section>
+      <h2>5. In context</h2>
+      <div class="size-block-title">size="detail" — top of a detail page (hover the badge)</div>
+      <div class="mock-detail-header" id="mock-detail"></div>
+
+      <div class="size-block-title">size="card" — inside a summary card (hover the badge)</div>
+      <div class="mock-card" id="mock-card"></div>
+
+      <div class="size-block-title">size="list" — dense list/table rows (no fabricated figures; unknown rows fall back to Not surveyed, rule #4)</div>
+      <table>
+        <thead><tr><th>Location</th><th>Verdict</th></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="verdict-badge.js"></script>
+  <script>
+    // 1. Default pills
+    var defaultRow = document.getElementById("default-row");
+    VerdictBadge.STATES.forEach(function (status) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML =
+        VerdictBadge.render(status, { size: "card" }) +
+        "<code>status=\"" + status + "\"</code>";
+      defaultRow.appendChild(cell);
+    });
+
+    // 2. Hover-border demo (identical markup — hover reveals the border via CSS)
+    var hoverRow = document.getElementById("hover-row");
+    VerdictBadge.STATES.forEach(function (status) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML =
+        VerdictBadge.render(status, { size: "card" }) +
+        "<code>hover me</code>";
+      hoverRow.appendChild(cell);
+    });
+
+    // 3. Tooltip demo — only 3 of the 4 states show one
+    var tooltipRow = document.getElementById("tooltip-row");
+    VerdictBadge.STATES.forEach(function (status) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.overflow = "visible";
+      cell.innerHTML =
+        VerdictBadge.renderWithTooltip(status, { size: "card" }) +
+        "<code>hover me</code>";
+      tooltipRow.appendChild(cell);
+    });
+
+    // 4. Size matrix
+    var matrix = document.getElementById("size-matrix");
+    VerdictBadge.SIZES.forEach(function (size) {
+      var title = document.createElement("div");
+      title.className = "size-block-title";
+      title.textContent = 'size="' + size + '"';
+      matrix.appendChild(title);
+
+      var row = document.createElement("div");
+      row.className = "row";
+      VerdictBadge.STATES.forEach(function (status) {
+        var cell = document.createElement("div");
+        cell.className = "cell";
+        cell.innerHTML =
+          VerdictBadge.render(status, { size: size }) +
+          "<code>" + status + " / " + size + "</code>";
+        row.appendChild(cell);
+      });
+      matrix.appendChild(row);
+    });
+
+    // 5a. Detail header mock
+    document.getElementById("mock-detail").innerHTML =
+      "<h3>Location A</h3>" + VerdictBadge.renderWithTooltip("accessible", { size: "detail" });
+
+    // 5b. Card mock
+    document.getElementById("mock-card").innerHTML =
+      '<div class="mock-card-title">Location B</div>' +
+      VerdictBadge.renderWithTooltip("caution", { size: "card" });
+
+    // 5c. List/table example — plain location labels, no fabricated stats.
+    var rows = [
+      { name: "Location A", status: "accessible" },
+      { name: "Location B", status: "caution" },
+      { name: "Location C", status: "difficult" },
+      { name: "Location D", status: null }, // no data yet -> Not surveyed
+    ];
+    var tbody = document.getElementById("table-body");
+    rows.forEach(function (row) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + row.name + "</td>" +
+        "<td>" + VerdictBadge.render(row.status, { size: "list" }) + "</td>";
+      tbody.appendChild(tr);
+    });
+  </script>
+</body>
+</html>

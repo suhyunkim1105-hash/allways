@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Site Footer — Demo (1440px desktop)</title>
+<link rel="stylesheet" href="site-footer.css" />
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f7f8f9;
+    color: #202124;
+  }
+  .frame {
+    width: 1440px;
+    margin: 0 auto;
+    padding: 40px 64px 0;
+    box-sizing: border-box;
+    background: #ffffff;
+    min-height: 100vh;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .subtitle { color: #5f6368; font-size: 13px; margin: 0 0 32px; }
+  section { margin-bottom: 40px; }
+  h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5f6368;
+    margin: 0 0 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e6e8eb;
+  }
+  .hint { font-size: 12px; color: #80868b; margin: 8px 0 20px; }
+  .mock-screen {
+    border: 1px solid #e6e8eb;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .mock-screen-body {
+    padding: 48px 24px;
+    text-align: center;
+    color: #9aa0a6;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Site Footer</h1>
+    <p class="subtitle">Owner: 명진 · Desktop reference width: 1440px · Same footer on every screen — only the data line's wording changes.</p>
+
+    <section>
+      <h2>1. Static markup (default AllWays data)</h2>
+      <p class="hint">Copy this markup as-is into any screen (see the usage block at the top of site-footer.css).</p>
+      <div class="mock-screen">
+        <div class="mock-screen-body">(화면 콘텐츠 영역)</div>
+        <footer class="site-footer">
+          <div class="site-footer__inner">
+            <img class="site-footer__logo" src="../../assets/allways-logo.png" alt="AllWays" />
+            <p class="site-footer__slogan">Always, AllWays.</p>
+            <div class="site-footer__divider"></div>
+            <div class="site-footer__info">
+              <span class="site-footer__info-item site-footer__info-item--team">Team Ctrl+K</span>
+              <span class="site-footer__info-sep">·</span>
+              <span class="site-footer__info-item">2026 KF Digital Public Diplomacy Academy</span>
+              <span class="site-footer__info-sep">·</span>
+              <span class="site-footer__info-item">Data surveyed Aug 2026</span>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Built from data via SiteFooter.render()</h2>
+      <p class="hint">Same output, generated from a data object — useful if a screen's data line differs (e.g. a later survey date).</p>
+      <div class="mock-screen">
+        <div class="mock-screen-body">(화면 콘텐츠 영역)</div>
+        <div id="js-footer"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Missing data falls back to "—", never a guess</h2>
+      <p class="hint">If team/event/date is missing, that slot shows "—" instead of a fabricated value (common rule: never invent data).</p>
+      <div class="mock-screen">
+        <div class="mock-screen-body">(화면 콘텐츠 영역)</div>
+        <div id="js-footer-missing"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. &lt;site-footer&gt; custom element</h2>
+      <p class="hint">Attribute-driven, upgrades in place — no manual innerHTML call needed.</p>
+      <div class="mock-screen">
+        <div class="mock-screen-body">(화면 콘텐츠 영역)</div>
+        <site-footer
+          logo-src="../../assets/allways-logo.png"
+          team="Team Ctrl+K"
+          event="2026 KF Digital Public Diplomacy Academy"
+          date="Data surveyed Aug 2026"
+        ></site-footer>
+      </div>
+    </section>
+  </div>
+
+  <script src="site-footer.js"></script>
+  <script>
+    document.getElementById("js-footer").innerHTML = SiteFooter.render({
+      logoSrc: "../../assets/allways-logo.png",
+      team: "Team Ctrl+K",
+      event: "2026 KF Digital Public Diplomacy Academy",
+      date: "Data surveyed Aug 2026",
+    });
+
+    document.getElementById("js-footer-missing").innerHTML = SiteFooter.render({
+      logoSrc: "../../assets/allways-logo.png",
+      team: "Team Ctrl+K",
+      // event intentionally omitted
+      date: "",
+    });
+  </script>
+</body>
+</html>
