@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AllWays — Always, AllWays.</title>
+<meta name="description" content="AllWays: Always, AllWays." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <main class="hero" id="hero">
+    <div class="hero__inner">
+
+      <img
+        class="hero__logo"
+        src="assets/allways-logo.png"
+        alt="AllWays logo"
+        draggable="false"
+      />
+
+      <h1 class="hero__slogan">Always, AllWays.</h1>
+
+      <div class="greeting" aria-live="polite">
+        <span class="greeting__text" id="greetingText">Welcome</span>
+      </div>
+
+      <div class="google-signin" id="googleSignIn">
+        <!-- Real Google-rendered button goes here once Google Identity
+             Services loads successfully (see script.js: GOOGLE_CLIENT_ID). -->
+        <div id="gSignInBtn"></div>
+
+        <!-- Fallback button: shown until the real Google button renders
+             (e.g. GOOGLE_CLIENT_ID not set yet, or offline/dev preview).
+             Matches Google's official button style; do not recolor the
+             "G" logo. -->
+        <button class="google-btn-fallback" id="googleFallbackBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4818h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.8741 2.6836-6.6154z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.4673-.8059 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.8591-3.0477.8591-2.3436 0-4.3282-1.5831-5.0359-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.9641 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.9641 10.71z"/>
+            <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.9641 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"/>
+          </svg>
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+
+      <p class="hero__stats" id="statsText">n people around the world have joined.</p>
+
+    </div>
+
+    <!-- Faint background map — nods to AllWays being a "ways/routes"
+         brand. Streets/river are neutral pale gray (no brand blue/orange
+         in the linework); only the two pin markers + one small dot use
+         accent color, kept small so nothing competes with the logo,
+         slogan, or buttons in front. -->
+    <svg class="hero__map-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+
+      <!-- pale street grid (neutral gray, no brand color) — kept very
+           faint; this is texture, not a graphic element competing with
+           the content. -->
+      <g fill="none" stroke="#C7CCD6" stroke-width="1.5" opacity="0.16" stroke-linecap="round">
+        <path d="M -50 120 L 300 120 L 300 260 L 700 260 L 700 140 L 1500 140" />
+        <path d="M -50 380 L 220 380 L 220 500 L 600 500 L 600 420 L 1000 420 L 1000 560 L 1500 560" />
+        <path d="M -50 700 L 400 700 L 400 640 L 850 640 L 850 760 L 1500 760" />
+        <path d="M 150 -50 L 150 300 L 260 300 L 260 700 L 150 700 L 150 950" />
+        <path d="M 480 -50 L 480 220 L 600 220 L 600 600 L 520 600 L 520 950" />
+        <path d="M 820 -50 L 820 350 L 920 350 L 920 750 L 1000 750 L 1000 950" />
+        <path d="M 1150 -50 L 1150 260 L 1080 260 L 1080 620 L 1200 620 L 1200 950" />
+      </g>
+      <path d="M -50 500 L 1500 260" fill="none" stroke="#C7CCD6" stroke-width="1.5" opacity="0.14" />
+
+      <!-- faint river -->
+      <path
+        d="M -50 560 C 200 480, 350 630, 600 550 S 950 470, 1200 530 S 1400 570, 1500 530"
+        fill="none"
+        stroke="#CFE0F5"
+        stroke-width="10"
+        stroke-linecap="round"
+        opacity="0.3"
+      />
+
+      <!-- dotted route connecting the two pins (neutral gray, not brand blue),
+           kept in the side margins so it never runs under the logo/slogan/CTA -->
+      <path
+        d="M 160 300 C 100 400, 260 460, 210 560 C 160 660, 300 700, 1290 640"
+        fill="none"
+        stroke="#9AA2B0"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-dasharray="1.5 10"
+        opacity="0.32"
+      />
+
+      <!-- pin markers: faded to match the rest of the background layer -->
+      <g transform="translate(160 268) scale(0.85)" opacity="0.45">
+        <path d="M0 0C-11 0-20 9-20 20c0 15 20 36 20 36s20-21 20-36C20 9 11 0 0 0z" fill="#FF8040"/>
+        <circle cx="0" cy="19" r="7" fill="#F0F2F5" />
+      </g>
+      <g transform="translate(1290 608) scale(0.85)" opacity="0.45">
+        <path d="M0 0C-11 0-20 9-20 20c0 15 20 36 20 36s20-21 20-36C20 9 11 0 0 0z" fill="#0046FF"/>
+        <circle cx="0" cy="19" r="7" fill="#F0F2F5" />
+      </g>
+
+      <!-- lone accent dot, echoing the reference mood board -->
+      <circle cx="60" cy="600" r="5" fill="#FF8040" opacity="0.4" />
+    </svg>
+  </main>
+
+  <!-- Google Identity Services — required for the real "Sign in with
+       Google" button (see GOOGLE_CLIENT_ID in script.js). Safe to keep
+       even before the Client ID is set; it just won't initialize. -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="script.js"></script>
+</body>
+</html>
