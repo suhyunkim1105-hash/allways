@@ -12,7 +12,27 @@ script.js                  인사말 순환 로직 + Start 버튼 연결 훅
 assets/allways-logo.png             로고 (배경만 투명 처리, 로고 자체 디자인은 무수정)
 assets/allways-logo-original.png    첨부해주신 원본 PNG (배경 옅은 흰색, 백업용 보관)
 assets/fonts/                       첨부해주신 APHont 폰트 (ttf 원본 + woff2 변환본)
+components/site-footer/             전 화면 공통 하단 푸터 (아래 "하단 공통 푸터" 참고)
 ```
+
+## 하단 공통 푸터 (Footer)
+
+전 화면 하단에 공통으로 들어가는 띠: 로고 · 슬로건 · 정보 라인(팀명 · KF 행사명 ·
+데이터 기준일). 이번 랜딩페이지(`index.html`)에 우선 적용했고, 재사용 가능한
+버전은 `components/site-footer/`에 따로 뒀습니다 (다른 화면 담당자가 그대로
+가져다 쓸 수 있도록 `verdict-badge` 컴포넌트와 동일한 구성 — `.css` + `.js` +
+단독 데모 html).
+
+- 로고: 기존 `assets/allways-logo.png`(투명 배경) 그대로 재사용, 무수정.
+- 슬로건: 랜딩페이지와 동일하게 "Always, AllWays." (컬러도 Primary Blue
+  `#0046FF`로 동일하게 맞춤).
+- 정보 라인: `Team Ctrl+K · 2026 KF Digital Public Diplomacy Academy ·
+  Data surveyed Aug 2026`. 값이 없는 화면에서는 `SiteFooter.render()`가
+  임의로 값을 지어내지 않고 `—`로 표시합니다 (verdict-badge의 "never
+  fabricate" 규칙과 동일).
+- 미리보기: `components/site-footer/site-footer-demo.html`을 브라우저로
+  열면 정적 마크업 / JS 렌더 / `<site-footer>` 커스텀 엘리먼트 세 가지
+  사용 방식을 모두 확인할 수 있습니다.
 
 ## 적용한 디자인 값
 
