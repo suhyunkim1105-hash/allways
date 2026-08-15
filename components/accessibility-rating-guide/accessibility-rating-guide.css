@@ -1,0 +1,258 @@
+/*
+ * Accessibility Rating Guide — page styles
+ * Owner: Genie
+ *
+ * Consumes the shared verdict-badge component (components/verdict-badge/)
+ * as-is via <link>/<script> include — no edits made to that component.
+ * Every value chip below reuses VerdictBadge.render(...) directly so the
+ * icon + color + label unit always matches the rest of the product.
+ *
+ * Data values in this page come verbatim from the confirmed criteria table
+ * (Threshold / Slope / Passage width / Door / Turning space / Accessible
+ * restroom). Nothing here is invented — see accessibility-rating-guide.js.
+ */
+
+@font-face {
+  font-family: "APHont";
+  src: url("./assets/fonts/APHont-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "APHont";
+  src: url("./assets/fonts/APHont-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --arg-blue: #0046ff;
+  --arg-orange: #ff8040;
+  --arg-bg: #f0f2f5;
+  --arg-card: #ffffff;
+  --arg-text: #16181d;
+  --arg-text-muted: #6b7280;
+  --arg-border: #e6e8ec;
+  --arg-radius-lg: 24px;
+  --arg-radius-md: 16px;
+  --arg-radius-sm: 14px;
+  --arg-shadow: 0 2px 6px rgba(16, 24, 40, 0.05), 0 8px 24px rgba(16, 24, 40, 0.06);
+
+  /* tier colors — match verdict-badge's own color set exactly */
+  --arg-accessible: #15803d;
+  --arg-accessible-bg: #e9f7ee;
+  --arg-caution: #b06000;
+  --arg-caution-bg: #fef3d6;
+  --arg-difficult: #c62828;
+  --arg-difficult-bg: #fceceb;
+}
+
+.arg-page {
+  font-family: "APHont", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--arg-bg);
+  color: var(--arg-text);
+  min-height: 100%;
+  padding: 56px 24px 96px;
+  box-sizing: border-box;
+}
+
+.arg-container {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+/* ---- Header -------------------------------------------------------- */
+
+.arg-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.arg-logo {
+  height: 40px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.arg-heading h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.arg-subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--arg-text-muted);
+}
+
+/* ---- Legend ---------------------------------------------------------
+ * Reuses VerdictBadge.renderWithTooltip(...) untouched. This block only
+ * arranges the badges it returns; badge visuals are not overridden.
+ */
+
+.arg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.arg-legend__item {
+  background: var(--arg-card);
+  border-radius: var(--arg-radius-md);
+  box-shadow: var(--arg-shadow);
+  padding: 20px 20px 16px;
+  flex: 1 1 200px;
+  min-width: 180px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---- Criterion cards -------------------------------------------------
+ * Each of the 6 confirmed criteria gets its own card so a reader can judge
+ * one criterion at a time without parsing a dense spreadsheet grid.
+ */
+
+.arg-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arg-card {
+  background: var(--arg-card);
+  border-radius: var(--arg-radius-lg);
+  box-shadow: var(--arg-shadow);
+  padding: 20px 24px 24px;
+}
+
+.arg-card__head {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 4px 4px 16px;
+  border-radius: var(--arg-radius-sm);
+}
+
+.arg-card__head:focus-visible {
+  outline: 2px solid var(--arg-blue);
+  outline-offset: 2px;
+}
+
+.arg-card__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--arg-blue);
+}
+.arg-card__icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.arg-card__title {
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+  text-align: left;
+}
+
+.arg-card__chevron {
+  display: inline-flex;
+  font-size: 15px;
+  color: var(--arg-text-muted);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.arg-card__head.is-open .arg-card__chevron {
+  transform: rotate(90deg);
+}
+
+/* Chip grid — the core "at a glance" comparison row */
+
+.arg-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.arg-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 14px 16px;
+  border-radius: var(--arg-radius-sm);
+}
+
+.arg-chip--accessible {
+  background: var(--arg-accessible-bg);
+}
+.arg-chip--caution {
+  background: var(--arg-caution-bg);
+}
+.arg-chip--difficult {
+  background: var(--arg-difficult-bg);
+}
+
+.arg-chip__badge {
+  line-height: 1;
+}
+
+.arg-chip__value {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.arg-chip--accessible .arg-chip__value {
+  color: var(--arg-accessible);
+}
+.arg-chip--caution .arg-chip__value {
+  color: var(--arg-caution);
+}
+.arg-chip--difficult .arg-chip__value {
+  color: var(--arg-difficult);
+}
+
+/* ---- Optional expanded context ------------------------------------
+ * Collapsed by default. Reserved for longer per-criterion explanations
+ * once the team provides them — currently just restates the full
+ * criterion name for screen-reader / low-vision clarity.
+ */
+
+.arg-detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--arg-border);
+  font-size: 13px;
+  color: var(--arg-text-muted);
+}
+
+/* ---- Responsive ------------------------------------------------------ */
+
+@media (max-width: 640px) {
+  .arg-page {
+    padding: 32px 16px 64px;
+  }
+
+  .arg-card {
+    padding: 18px 16px 20px;
+  }
+
+  .arg-chips {
+    grid-template-columns: 1fr;
+  }
+}
