@@ -1,0 +1,204 @@
+/* =========================================================
+   AllWays — Landing Page (First Screen)
+   Owner: Landing page module only.
+   Do NOT edit landingpage-filtering.component — see page.tsx
+   for the integration hook that connects to it.
+   ========================================================= */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 72px 0;
+  background: #F0F2F5;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.heroLogo {
+  display: block;
+  width: 520px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 4px;
+  user-select: none;
+  animation: fadeInDown 0.7s ease both;
+}
+
+/* Tagline under the logo — a bit more presence than a tiny caption,
+   but well below a Marble-style oversized headline */
+.heroSlogan {
+  margin: 0 0 40px;
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #0046FF;
+  letter-spacing: -0.01em;
+  animation: fadeInUp 0.7s 0.1s ease both;
+}
+
+/* Rotating greetings */
+.greeting {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 44px;
+  animation: fadeInUp 0.7s 0.2s ease both;
+}
+
+.greetingText {
+  font-size: 32px;
+  font-weight: 700;
+  color: #5B6472;
+  display: inline-block;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.greetingText::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 12px;
+  border-radius: 50%;
+  background: #FF8040;
+  vertical-align: middle;
+}
+
+.greetingTextHidden {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* -----------------------------------------------------
+   Google Sign-In
+   ----------------------------------------------------- */
+.googleSignin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  animation: fadeInUp 0.7s 0.3s ease both;
+}
+
+.googleBtnFallback {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 13px 28px;
+  border: 1px solid #DADCE0;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: #3C4043;
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.googleBtnFallback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.googleBtnFallback:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.googleBtnFallback:hover::after {
+  opacity: 0.03;
+}
+
+.googleBtnFallback:active {
+  transform: scale(0.98);
+}
+
+.googleBtnFallback:active::after {
+  opacity: 0.08;
+}
+
+.googleBtnFallback:focus-visible {
+  outline: 3px solid #FF8040;
+  outline-offset: 3px;
+}
+
+/* Member count */
+.heroStats {
+  margin: 28px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: #5B6472;
+  animation: fadeInUp 0.8s 0.55s ease both;
+}
+
+/* Faint background map/route motif */
+.heroMapBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: fadeInMap 1.6s ease both;
+}
+
+@keyframes fadeInMap {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroLogo,
+  .heroSlogan,
+  .greeting,
+  .googleSignin {
+    animation: none;
+  }
+  .greetingText {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroLogo {
+    width: 160px;
+  }
+  .heroSlogan {
+    font-size: 18px;
+  }
+}
