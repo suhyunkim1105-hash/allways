@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Onboarding & Filtering Flow (Plain HTML/JS)</title>
+<style>
+  /* ==========================================================================
+     Structural layout ONLY — no color, typography, or brand decisions here.
+     Supports a 2-column / full-width card grid, a progress bar track/fill,
+     and a sticky bottom action bar, matching the shape of standard mobile
+     onboarding survey screens. Swap freely for real design system styles
+     without touching any logic below.
+     ========================================================================== */
+  #app {
+    min-height: 100vh; /* keeps the whole viewport a valid swipe/drag hit-area */
+    display: flex;
+    flex-direction: column;
+  }
+  .onboarding-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+  }
+  .step-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .selectable-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .selectable-card--full-width {
+    grid-column: 1 / -1;
+  }
+  .bottom-actions {
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    gap: 8px;
+  }
+  .bottom-actions button {
+    flex: 1;
+  }
+  /* A moderate, self-contained block — NOT stretched to fill the viewport.
+     Capped width + centered, so it reads as one balanced component within
+     the screen rather than an edge-to-edge grid. */
+  .calendar {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .calendar-weekdays,
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .calendar-cell {
+    aspect-ratio: 1 / 1;
+  }
+  .calendar-cell--blank {
+    visibility: hidden;
+  }
+  .swipe-hint {
+    margin-top: auto;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ==========================================================
+       Markup below carries only structural layout (grid/flexbox via
+       the <style> block above) — no color, font, or design decisions.
+       This deliverable focuses on state management, step/flow logic,
+       swipe handling, and the filter function.
+       ========================================================== -->
+  <main id="app"></main>
+
+<script>
+"use strict";
+
+// ============================================================================
+// 1. STATIC OPTION DATA (English labels only)
+// ============================================================================
+
+// Step 1: Mobility & Accessibility Conditions
+var ACCESSIBILITY_OPTIONS = [
+  { value: "WHEELCHAIR_USER", label: "Wheelchair User" },
+  { value: "STROLLER_INFANT_COMPANION", label: "Stroller / Infant Companion" },
+  { value: "SENIOR", label: "Senior" },
+  { value: "PREGNANT_WOMAN", label: "Pregnant Woman" },
+  { value: "HEARING_IMPAIRED", label: "Hearing Impaired" }
+];
+
+// Step 2: Travel Preferences
+var TRAVEL_PREFERENCE_OPTIONS = [
+  { value: "HISTORY_HERITAGE", label: "History & Heritage" },
+  { value: "ARTS_CULTURE", label: "Arts & Culture" },
+  { value: "NATURE_LEISURE", label: "Nature & Leisure" },
+  { value: "SHOPPING_ENTERTAINMENT", label: "Shopping & Entertainment" }
+];
+
+var TOTAL_STEPS = 3;
+
+// Per-step header copy + capability flags — single source of truth for the
+// title/subtitle text and whether at least one selection is required
+// before Continue/swipe-left may advance past this step. Only the travel
+// schedule (Step 3) is fully optional — every other step requires a
+// minimum of one selection. Step 3 has no separate "Skip" action: its
+// Continue button is simply always enabled regardless of what's picked.
+var STEP_META = [
+  {
+    title: "Select all mobility options that apply to you.",
+    subtitle: "This helps us personalize accessible route recommendations. Select at least one option to continue.",
+    requiresSelection: true
+  },
+  {
+    title: "Select your travel preferences.",
+    subtitle: "Choose the categories you enjoy most. Select at least one option to continue.",
+    requiresSelection: true
+  },
+  {
+    title: "When are you traveling?",
+    subtitle: "Pick your travel dates, or continue without them.",
+    requiresSelection: false
+  }
+];
+
+// ============================================================================
+// 2. STATE SCHEMA
+//
+// Single source of truth for the whole onboarding flow. Kept as one plain
+// object so it can be serialized (JSON.stringify) as-is, e.g. to persist
+// or send to a backend once onboarding completes.
+// ============================================================================
+
+function createInitialState() {
+  return {
+    currentStep: 0,                 // 0 = Step1, 1 = Step2, 2 = Step3
+    accessibilityConditions: [],    // AccessibilityCondition[]
+    travelPreferences: [],          // TravelPreference[]
+    travelSchedule: {
+      startDate: null,              // 'YYYY-MM-DD' | null
+      endDate: null                 // 'YYYY-MM-DD' | null
+    },
+    isComplete: false
+  };
+}
+
+var state = createInitialState();
+
+// ============================================================================
+// 3. MOCK DOMAIN DATA (places / routes / itineraries being filtered)
+// ============================================================================
+
+var MOCK_PLACES = [
+  { id: "p1", name: "Grand Historic Palace", categories: ["HISTORY_HERITAGE"], accessibilityFeatures: ["WHEELCHAIR_USER", "SENIOR"] },
+  { id: "p2", name: "Modern Art Museum", categories: ["ARTS_CULTURE"], accessibilityFeatures: ["WHEELCHAIR_USER", "HEARING_IMPAIRED"] },
+  { id: "p3", name: "Riverside Nature Trail", categories: ["NATURE_LEISURE"], accessibilityFeatures: ["STROLLER_INFANT_COMPANION", "SENIOR"] },
+  { id: "p4", name: "Downtown Shopping District", categories: ["SHOPPING_ENTERTAINMENT"], accessibilityFeatures: [] },
+  { id: "p5", name: "Old Town Walking Route", categories: ["HISTORY_HERITAGE", "ARTS_CULTURE"], accessibilityFeatures: ["PREGNANT_WOMAN"] },
+  { id: "p6", name: "Botanical Gardens", categories: ["NATURE_LEISURE"], accessibilityFeatures: ["WHEELCHAIR_USER", "STROLLER_INFANT_COMPANION", "PREGNANT_WOMAN"] },
+  { id: "p7", name: "Night Market Entertainment Street", categories: ["SHOPPING_ENTERTAINMENT"], accessibilityFeatures: ["HEARING_IMPAIRED"] },
+  { id: "p8", name: "Contemporary Theater District", categories: ["ARTS_CULTURE", "SHOPPING_ENTERTAINMENT"], accessibilityFeatures: [] }
+];
+
+// ============================================================================
+// 4. FILTER LOGIC — the critical function
+//
+// Rule: an empty selection in Step 1 (or Step 2) means that dimension is NOT
+// used to exclude any place. If BOTH are empty, ALL places are returned.
+// Step 3 (dates) never participates in filtering, selected or skipped.
+//
+// When a dimension IS active: selections within it are OR'd; the two
+// dimensions are AND'd together.
+// ============================================================================
+
+function filterPlaces(currentState, allPlaces) {
+  var accessibilityConditions = currentState.accessibilityConditions;
+  var travelPreferences = currentState.travelPreferences;
+
+  var appliedAccessibilityFilter = accessibilityConditions.length > 0;
+  var appliedCategoryFilter = travelPreferences.length > 0;
+
+  if (!appliedAccessibilityFilter && !appliedCategoryFilter) {
+    return {
+      places: allPlaces.slice(),
+      appliedAccessibilityFilter: false,
+      appliedCategoryFilter: false
+    };
+  }
+
+  var places = allPlaces.filter(function (place) {
+    var matchesAccessibility =
+      !appliedAccessibilityFilter ||
+      accessibilityConditions.some(function (condition) {
+        return place.accessibilityFeatures.indexOf(condition) !== -1;
+      });
+
+    var matchesCategory =
+      !appliedCategoryFilter ||
+      travelPreferences.some(function (pref) {
+        return place.categories.indexOf(pref) !== -1;
+      });
+
+    return matchesAccessibility && matchesCategory;
+  });
+
+  return {
+    places: places,
+    appliedAccessibilityFilter: appliedAccessibilityFilter,
+    appliedCategoryFilter: appliedCategoryFilter
+  };
+}
+
+// ============================================================================
+// 4b. CALENDAR / SCHEDULE LOGIC — pure functions, no DOM (Step 3)
+//
+// Range-selection state machine:
+//   - Clicking a day when nothing is selected (or when a completed
+//     multi-day range already exists) starts a fresh single-day selection
+//     (startDate === endDate) — a lone day is itself a valid, complete
+//     "same-day" schedule if the user stops there.
+//   - Clicking a second day while exactly one day is selected extends the
+//     choice into a continuous range covering every date in between,
+//     regardless of direction.
+//   - Clicking the same single day again is a no-op.
+// ============================================================================
+
+var MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+var WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function pad2(n) {
+  return n < 10 ? "0" + n : String(n);
+}
+
+function toISODate(year, monthIndex, day) {
+  return year + "-" + pad2(monthIndex + 1) + "-" + pad2(day);
+}
+
+function daysInMonth(year, monthIndex) {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+function firstWeekdayOfMonth(year, monthIndex) {
+  return new Date(year, monthIndex, 1).getDay(); // 0 = Sunday
+}
+
+function selectScheduleDay(current, dateStr) {
+  var startDate = current.startDate;
+  var endDate = current.endDate;
+  var nothingSelected = startDate === null;
+  var hasCompleteRange = startDate !== null && endDate !== null && startDate !== endDate;
+
+  if (nothingSelected || hasCompleteRange) {
+    return { startDate: dateStr, endDate: dateStr };
+  }
+
+  // Exactly one day is currently selected (startDate === endDate) — extend.
+  if (dateStr < startDate) {
+    return { startDate: dateStr, endDate: startDate };
+  }
+  if (dateStr > startDate) {
+    return { startDate: startDate, endDate: dateStr };
+  }
+  return { startDate: startDate, endDate: startDate }; // same day again — no-op
+}
+
+function formatDisplayDate(dateStr) {
+  var parts = dateStr.split("-").map(Number);
+  var year = parts[0], month = parts[1], day = parts[2];
+  return MONTH_NAMES[month - 1] + " " + day + ", " + year;
+}
+
+function formatScheduleSummary(startDate, endDate) {
+  if (!startDate || !endDate) {
+    return "No travel dates selected yet.";
+  }
+  if (startDate === endDate) {
+    return "Your travel schedule: " + formatDisplayDate(startDate);
+  }
+  return "Your travel schedule: " + formatDisplayDate(startDate) + " – " + formatDisplayDate(endDate);
+}
+
+// ============================================================================
+// 5. STATE MUTATION HELPERS ("actions") — each mutates `state`, then re-renders
+// ============================================================================
+
+function toggleInArray(arr, value) {
+  var idx = arr.indexOf(value);
+  if (idx === -1) {
+    arr.push(value);
+  } else {
+    arr.splice(idx, 1);
+  }
+  return arr;
+}
+
+function clampStep(step) {
+  return Math.min(Math.max(step, 0), TOTAL_STEPS - 1);
+}
+
+// Only Step 3 (travel schedule) may be left empty/skipped. Every other step
+// requires at least one selection before the user can proceed (via Continue
+// or swipe-left).
+function canAdvanceFromCurrentStep() {
+  var meta = STEP_META[state.currentStep];
+  if (!meta.requiresSelection) return true;
+  if (state.currentStep === 0) return state.accessibilityConditions.length > 0;
+  if (state.currentStep === 1) return state.travelPreferences.length > 0;
+  return true;
+}
+
+function toggleAccessibility(value) {
+  toggleInArray(state.accessibilityConditions, value);
+  render();
+}
+
+function togglePreference(value) {
+  toggleInArray(state.travelPreferences, value);
+  render();
+}
+
+function setSchedule(startDate, endDate) {
+  state.travelSchedule = { startDate: startDate, endDate: endDate };
+  render();
+}
+
+function goToStep(step) {
+  state.currentStep = clampStep(step);
+  render();
+}
+
+function nextStep() {
+  if (state.currentStep === TOTAL_STEPS - 1) {
+    state.isComplete = true;
+  } else {
+    state.currentStep = clampStep(state.currentStep + 1);
+  }
+  render();
+}
+
+function prevStep() {
+  state.currentStep = clampStep(state.currentStep - 1);
+  render();
+}
+
+function resetOnboarding() {
+  state = createInitialState();
+  calendarViewYear = null; // let the calendar re-initialize to the current month
+  calendarViewMonth = null;
+  render();
+}
+
+// ============================================================================
+// 6. SWIPE NAVIGATION
+//
+// Swipe left  -> next step (auto-saves current step, same as Continue)
+// Swipe right -> previous step
+//
+// Because every action above already mutates `state` immediately on
+// interaction, there is nothing extra to "flush" before navigating — the
+// state is always up to date. The commented `commitPendingLocalState()` call
+// below is left as the single hook point in case a future step buffers
+// input locally before committing it.
+//
+// Real `touchstart`/`touchend` events only fire on an actual touch screen
+// (or with Chrome DevTools' device-toolbar touch emulation turned on) — a
+// plain mouse drag on a desktop browser does NOT trigger them. To make the
+// same gesture demoable with just a mouse, `resolveSwipe()` below holds the
+// shared threshold/direction logic, and it's wired up to BOTH the touch
+// events and mousedown/mouseup so a click-drag-release with the mouse
+// performs the identical swipe-left/swipe-right navigation.
+// ============================================================================
+
+var SWIPE_THRESHOLD = 50;
+var dragStartX = null;
+var dragStartY = null;
+
+function resolveSwipe(deltaX, deltaY) {
+  // Ignore short drags and mostly-vertical gestures (page scroll).
+  if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY)) {
+    return;
+  }
+
+  // commitPendingLocalState(); // hook point — no-op today, state is always live
+
+  if (deltaX < 0) {
+    // swipe/drag left -> forward, but:
+    //   - only if this step's minimum selection requirement is satisfied
+    //     (same rule as the Continue button), AND
+    //   - NOT on the final step (travel schedule) — forward navigation/
+    //     completion there is Continue-button-only.
+    var isLastStep = state.currentStep === TOTAL_STEPS - 1;
+    if (!isLastStep && canAdvanceFromCurrentStep()) {
+      nextStep();
+    }
+  } else {
+    prevStep(); // swipe/drag right -> back (always allowed, every step, no validation)
+  }
+}
+
+// --- Touch (real touchscreen / DevTools touch emulation) ---
+function handleTouchStart(e) {
+  var touch = e.touches[0];
+  dragStartX = touch.clientX;
+  dragStartY = touch.clientY;
+}
+
+function handleTouchEnd(e) {
+  if (dragStartX === null || dragStartY === null) return;
+  var touch = e.changedTouches[0];
+  var deltaX = touch.clientX - dragStartX;
+  var deltaY = touch.clientY - dragStartY;
+  dragStartX = null;
+  dragStartY = null;
+  resolveSwipe(deltaX, deltaY);
+}
+
+// --- Mouse (plain click-drag-release, for demoing on a desktop with no touchscreen) ---
+function handleMouseDown(e) {
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+}
+
+function handleMouseUp(e) {
+  if (dragStartX === null || dragStartY === null) return;
+  var deltaX = e.clientX - dragStartX;
+  var deltaY = e.clientY - dragStartY;
+  dragStartX = null;
+  dragStartY = null;
+  resolveSwipe(deltaX, deltaY);
+}
+
+// ============================================================================
+// 7. RENDERING (plain DOM, no framework)
+//
+// Screen structure mirrors standard mobile onboarding survey screens:
+//   Header (progress bar only) -> Title/subtitle -> Card grid
+//   (2 columns, odd last item full-width) -> sticky bottom CTA.
+// ============================================================================
+
+var appEl = document.getElementById("app");
+
+function renderHeader() {
+  var header = document.createElement("div");
+  header.className = "onboarding-header";
+
+  var progressPercent = ((state.currentStep + 1) / TOTAL_STEPS) * 100;
+
+  var track = document.createElement("div");
+  track.className = "progress-track";
+  track.setAttribute("role", "progressbar");
+  track.setAttribute("aria-valuenow", String(progressPercent));
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", "100");
+  track.setAttribute("aria-label", "Step " + (state.currentStep + 1) + " of " + TOTAL_STEPS);
+
+  var fill = document.createElement("div");
+  fill.className = "progress-fill";
+  fill.style.width = progressPercent + "%";
+  track.appendChild(fill);
+  header.appendChild(track);
+
+  appEl.appendChild(header);
+}
+
+function renderTitleBlock() {
+  var meta = STEP_META[state.currentStep];
+
+  var wrap = document.createElement("div");
+  wrap.className = "step-heading";
+
+  var heading = document.createElement("h2");
+  heading.textContent = meta.title;
+  wrap.appendChild(heading);
+
+  var subtitle = document.createElement("p");
+  subtitle.textContent = meta.subtitle;
+  wrap.appendChild(subtitle);
+
+  appEl.appendChild(wrap);
+}
+
+function renderCardGroup(options, selectedValues, onToggle, groupLabel) {
+  var group = document.createElement("div");
+  group.className = "card-grid";
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-label", groupLabel);
+
+  var isOddCount = options.length % 2 !== 0;
+
+  options.forEach(function (option, index) {
+    var isSelected = selectedValues.indexOf(option.value) !== -1;
+    var isLastOddItem = isOddCount && index === options.length - 1;
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("role", "checkbox");
+    btn.setAttribute("aria-checked", String(isSelected));
+    btn.setAttribute("data-selected", String(isSelected));
+    btn.setAttribute("data-value", option.value);
+    btn.className = "selectable-card" + (isLastOddItem ? " selectable-card--full-width" : "");
+
+    var labelSpan = document.createElement("span");
+    labelSpan.textContent = option.label;
+    btn.appendChild(labelSpan);
+
+    var checkSpan = document.createElement("span");
+    checkSpan.className = "check-icon";
+    checkSpan.setAttribute("aria-hidden", "true");
+    checkSpan.textContent = isSelected ? "✓" : "";
+    btn.appendChild(checkSpan);
+
+    btn.addEventListener("click", function () {
+      onToggle(option.value);
+    });
+    group.appendChild(btn);
+  });
+
+  appEl.appendChild(group);
+}
+
+function render() {
+  appEl.innerHTML = "";
+  appEl.addEventListener("touchstart", handleTouchStart, { passive: true });
+  appEl.addEventListener("touchend", handleTouchEnd, { passive: true });
+  appEl.addEventListener("mousedown", handleMouseDown);
+  appEl.addEventListener("mouseup", handleMouseUp);
+
+  if (state.isComplete) {
+    renderPlaceholderNextPage();
+    return;
+  }
+
+  renderHeader();
+  renderTitleBlock();
+
+  if (state.currentStep === 0) renderStep1();
+  else if (state.currentStep === 1) renderStep2();
+  else renderStep3();
+
+  if (!canAdvanceFromCurrentStep()) {
+    var hint = document.createElement("p");
+    hint.setAttribute("role", "alert");
+    hint.setAttribute("data-testid", "selection-required-hint");
+    hint.textContent = "Please select at least one option to continue.";
+    appEl.appendChild(hint);
+  }
+
+  renderNavArea();
+}
+
+function renderStep1() {
+  renderCardGroup(
+    ACCESSIBILITY_OPTIONS,
+    state.accessibilityConditions,
+    toggleAccessibility,
+    "Accessibility condition options"
+  );
+}
+
+function renderStep2() {
+  renderCardGroup(
+    TRAVEL_PREFERENCE_OPTIONS,
+    state.travelPreferences,
+    togglePreference,
+    "Travel preference options"
+  );
+}
+
+// Calendar's currently-viewed month/year (navigation state only — separate
+// from the actual selected startDate/endDate). Lazily initialized to the
+// month containing the current selection, or today's month if nothing is
+// selected yet, then persists across re-renders as the user browses months.
+var calendarViewYear = null;
+var calendarViewMonth = null; // 0-indexed
+
+function ensureCalendarView() {
+  if (calendarViewYear === null || calendarViewMonth === null) {
+    var base = state.travelSchedule.startDate
+      ? new Date(state.travelSchedule.startDate + "T00:00:00")
+      : new Date();
+    calendarViewYear = base.getFullYear();
+    calendarViewMonth = base.getMonth();
+  }
+}
+
+function goToPrevMonth() {
+  ensureCalendarView();
+  if (calendarViewMonth === 0) {
+    calendarViewMonth = 11;
+    calendarViewYear -= 1;
+  } else {
+    calendarViewMonth -= 1;
+  }
+  render();
+}
+
+function goToNextMonth() {
+  ensureCalendarView();
+  if (calendarViewMonth === 11) {
+    calendarViewMonth = 0;
+    calendarViewYear += 1;
+  } else {
+    calendarViewMonth += 1;
+  }
+  render();
+}
+
+function handleSelectDay(dateStr) {
+  var next = selectScheduleDay(
+    { startDate: state.travelSchedule.startDate, endDate: state.travelSchedule.endDate },
+    dateStr
+  );
+  setSchedule(next.startDate, next.endDate);
+}
+
+function renderStep3() {
+  ensureCalendarView();
+
+  var calendarWrap = document.createElement("div");
+  calendarWrap.className = "calendar";
+  calendarWrap.setAttribute("data-testid", "calendar");
+
+  var header = document.createElement("div");
+  header.className = "calendar-header";
+
+  var prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.textContent = "◀";
+  prevBtn.setAttribute("aria-label", "Previous month");
+  prevBtn.setAttribute("data-testid", "calendar-prev");
+  prevBtn.addEventListener("click", goToPrevMonth);
+  header.appendChild(prevBtn);
+
+  var monthLabel = document.createElement("span");
+  monthLabel.textContent = MONTH_NAMES[calendarViewMonth] + " " + calendarViewYear;
+  header.appendChild(monthLabel);
+
+  var nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.textContent = "▶";
+  nextBtn.setAttribute("aria-label", "Next month");
+  nextBtn.setAttribute("data-testid", "calendar-next");
+  nextBtn.addEventListener("click", goToNextMonth);
+  header.appendChild(nextBtn);
+
+  calendarWrap.appendChild(header);
+
+  var weekdaysRow = document.createElement("div");
+  weekdaysRow.className = "calendar-weekdays";
+  WEEKDAY_LABELS.forEach(function (label) {
+    var span = document.createElement("span");
+    span.textContent = label;
+    weekdaysRow.appendChild(span);
+  });
+  calendarWrap.appendChild(weekdaysRow);
+
+  var grid = document.createElement("div");
+  grid.className = "calendar-grid";
+
+  var totalDays = daysInMonth(calendarViewYear, calendarViewMonth);
+  var leadingBlanks = firstWeekdayOfMonth(calendarViewYear, calendarViewMonth);
+
+  for (var i = 0; i < leadingBlanks; i++) {
+    var blank = document.createElement("span");
+    blank.className = "calendar-cell calendar-cell--blank";
+    grid.appendChild(blank);
+  }
+
+  var sch = state.travelSchedule;
+
+  for (var day = 1; day <= totalDays; day++) {
+    var dateStr = toISODate(calendarViewYear, calendarViewMonth, day);
+    var isEndpoint = dateStr === sch.startDate || dateStr === sch.endDate;
+    var isInRange = !!sch.startDate && !!sch.endDate && dateStr > sch.startDate && dateStr < sch.endDate;
+
+    var dayBtn = document.createElement("button");
+    dayBtn.type = "button";
+    dayBtn.className = "calendar-cell";
+    dayBtn.setAttribute("data-testid", "calendar-day-" + dateStr);
+    dayBtn.setAttribute("data-selected", String(isEndpoint || isInRange));
+    dayBtn.setAttribute("data-range-endpoint", String(isEndpoint));
+    dayBtn.setAttribute("aria-pressed", String(isEndpoint || isInRange));
+    dayBtn.textContent = String(day) + (isEndpoint ? " ●" : isInRange ? " -" : "");
+    dayBtn.addEventListener("click", (function (capturedDateStr) {
+      return function () {
+        handleSelectDay(capturedDateStr);
+      };
+    })(dateStr));
+    grid.appendChild(dayBtn);
+  }
+
+  calendarWrap.appendChild(grid);
+  appEl.appendChild(calendarWrap);
+
+  var summary = document.createElement("p");
+  summary.setAttribute("data-testid", "schedule-summary");
+  summary.textContent = formatScheduleSummary(sch.startDate, sch.endDate);
+  appEl.appendChild(summary);
+}
+
+// Navigation is swipe-only: there is no on-screen Back button anywhere, and
+// no Continue/Next button on Step 1 or Step 2 — advancing/going back is done
+// exclusively via swipe (or mouse-drag, see resolveSwipe). A plain text hint
+// (not a button) tells the user which gestures are available. The ONLY
+// on-screen button in the entire flow is "Continue" on the final step
+// (Step 3), which completes onboarding — Step 3 stays optional since
+// Continue works with zero dates selected (requiresSelection is false
+// for this step). Swipe-left is disabled on Step 3; only swipe-right
+// (back) and the Continue button function there.
+function renderNavArea() {
+  var isLastStep = state.currentStep === TOTAL_STEPS - 1;
+
+  if (!isLastStep) {
+    var hint = document.createElement("p");
+    hint.setAttribute("data-testid", "swipe-hint");
+    hint.textContent = state.currentStep > 0
+      ? "Swipe left to continue, swipe right to go back."
+      : "Swipe left to continue.";
+    appEl.appendChild(hint);
+    return;
+  }
+
+  if (state.currentStep > 0) {
+    var backHint = document.createElement("p");
+    backHint.setAttribute("data-testid", "swipe-hint");
+    backHint.textContent = "Swipe right to go back.";
+    appEl.appendChild(backHint);
+  }
+
+  var canAdvance = canAdvanceFromCurrentStep();
+
+  var nav = document.createElement("div");
+  nav.className = "bottom-actions";
+
+  var continueBtn = document.createElement("button");
+  continueBtn.type = "button";
+  continueBtn.textContent = "Continue";
+  continueBtn.setAttribute("data-testid", "continue-button");
+  continueBtn.disabled = !canAdvance;
+  continueBtn.setAttribute("aria-disabled", String(!canAdvance));
+  continueBtn.addEventListener("click", function () {
+    if (canAdvanceFromCurrentStep()) {
+      nextStep();
+    }
+  });
+  nav.appendChild(continueBtn);
+
+  appEl.appendChild(nav);
+}
+
+// The real destination after onboarding is a separate Map / Main app page
+// being built by another developer — it is not implemented in this
+// deliverable. This placeholder simply confirms the transition fired.
+// `filterPlaces`/`MOCK_PLACES` remain defined above (and exposed via
+// window.__onboardingDebug) as a reusable utility for whichever page ends
+// up consuming the finished onboarding state — see the accessibility +
+// category filter rules documented near their definitions.
+function renderPlaceholderNextPage() {
+  var heading = document.createElement("h2");
+  heading.textContent = "Onboarding Complete";
+  appEl.appendChild(heading);
+
+  var info = document.createElement("p");
+  info.setAttribute("data-testid", "next-page-placeholder");
+  info.textContent =
+    "This is a placeholder for the Map / Main app page, which is being " +
+    "built separately and is not yet implemented here.";
+  appEl.appendChild(info);
+
+  var restartBtn = document.createElement("button");
+  restartBtn.type = "button";
+  restartBtn.textContent = "Restart Onboarding";
+  restartBtn.addEventListener("click", resetOnboarding);
+  appEl.appendChild(restartBtn);
+}
+
+// ============================================================================
+// 8. INIT
+// ============================================================================
+
+render();
+
+// Expose internals for debugging / automated testing (e.g. via browser console
+// or a headless test runner) without affecting the app itself.
+window.__onboardingDebug = {
+  getState: function () { return state; },
+  filterPlaces: filterPlaces,
+  MOCK_PLACES: MOCK_PLACES,
+  nextStep: nextStep,
+  prevStep: prevStep,
+  toggleAccessibility: toggleAccessibility,
+  togglePreference: togglePreference,
+  setSchedule: setSchedule,
+  resetOnboarding: resetOnboarding,
+  canAdvanceFromCurrentStep: canAdvanceFromCurrentStep,
+  selectScheduleDay: selectScheduleDay,
+  formatScheduleSummary: formatScheduleSummary,
+  handleSelectDay: handleSelectDay
+};
+</script>
+</body>
+</html>
