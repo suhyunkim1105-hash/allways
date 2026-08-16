@@ -16,7 +16,7 @@ export default function Landing() {
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center bg-brand px-4 text-center text-white">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-brand px-4 text-center text-white">
       <p className="mb-6 h-10 text-3xl font-bold" aria-live="polite">{reduced ? "Welcome" : GREETINGS[i]}</p>
       <h1 className="text-6xl font-bold tracking-tight">
         <span className="text-accent">All</span>Ways

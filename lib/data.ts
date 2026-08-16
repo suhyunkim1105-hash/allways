@@ -5,11 +5,7 @@ export type Place = {
   name_ko: string; name_en: string; category: string; tags: string[];
   lat: number; lng: number; open_hours: string; closed_days: string;
   admission: string; summary_en: string; access_note_en: string; bf_grade: string | null;
-  // Optional — not present in every place record yet. Place Detail Home
-  // falls back to "Not surveyed" (address_en) or hides the row (website)
-  // when these are missing. Keep optional so existing data stays valid.
-  address_en?: string;
-  website?: string;
+  official_url: string | null; source_url: string | null; has_access_page: boolean;
 };
 export type Survey = {
   record_id: string; target: string; step_cm: string; slope_class: string; slope_deg: string;
