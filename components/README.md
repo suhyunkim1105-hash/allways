@@ -1,123 +1,152 @@
-# LandingpageFiltering
+# FilterBar
 
-A button-navigated, 4-step onboarding component matching the AllWays
-reference screens (mobility needs → travel interests → travel schedule →
-preferences summary), using the real AllWays logo and APHont font. Ready to
-drop into a GitHub repo as-is:
+A React/TypeScript tourism destination filter bar: Region, Category, and
+Accessibility pill filters plus a free-text search box, all laid out in a
+single horizontally-scrolling row, designed to float across the top of a
+Google Map. Selected filters appear as removable chips below the bar,
+with a "Clear All" action.
 
-```
-LandingpageFiltering.tsx
-LandingpageFiltering.css
-assets.d.ts              (lets `tsc` type-check the PNG import; most
-                           bundlers — Vite/webpack/CRA — don't need this)
-assets/
-  allways-logo.png         (real logo, transparent background)
-  APHontRegular.woff2      (font-weight: 400, font-style: normal)
-  APHontBold.woff2         (font-weight: 700, font-style: normal)
-  APHontItalic.woff2       (font-weight: 400, font-style: italic)
-  APHontBoldItalic.woff2   (font-weight: 700, font-style: italic)
-```
+## Files in this package
 
-Keep the folder structure as-is (the `.tsx`/`.css` reference `./assets/...`
-by relative path) — copy the whole thing into your repo, e.g.
-`src/components/LandingpageFiltering/`.
+- **`FilterBar.tsx`** — the component.
+- **`FilterBar.css`** — all of its styling (imported at the top of
+  `FilterBar.tsx` via `import "./FilterBar.css"`). Keep these two files
+  together.
+- **`fonts/`** — the actual APHont font files (self-hosted; APHont isn't
+  on Google Fonts or any public CDN), referenced by `FilterBar.css`'s
+  `@font-face` rules. Each of the 4 weights/styles ships as `.woff2`
+  (primary), `.woff` (fallback), and `.ttf` (last-resort fallback).
+- **`verdict-badge.css`** / **`verdict-badge.js`** — the original
+  source assets for the Accessibility badges (owner: 명진). Their icons,
+  labels, and tooltip copy are inlined/ported into `FilterBar.css` /
+  `FilterBar.tsx` already (see "Accessibility badges" below); these
+  copies are included only for reference / attribution.
+- **`preview.html`** — a self-contained, pre-bundled demo (real font
+  included) — open it directly in a browser, no build step or server
+  required.
+
+## Requirements
+
+- React 18+ (the component uses `useId()`) with `react-dom` available
+  (the Accessibility tooltip uses `createPortal`, see below)
+- TypeScript (compiles clean under `tsc --strict`)
+- A bundler that can import `.css` files from a `.tsx` file (Vite, CRA,
+  Next.js, webpack — all standard React setups support this out of the
+  box)
 
 ## Usage
 
 ```tsx
-import { LandingpageFiltering } from './LandingpageFiltering';
+import FilterBar, { FilterBarHandle, MatchableItem } from "./FilterBar";
+// FilterBar.css is imported automatically by FilterBar.tsx itself —
+// you don't need to import it separately.
 
-<LandingpageFiltering
-  onFinish={({ state, useFilters }) => {
-    // state: the finished OnboardingState (selections + schedule)
-    // useFilters: true if "Show my personalized routes" was pressed,
-    //             false if "Show all routes" was pressed instead
-    // navigate to the Map / Main app page here
-  }}
-/>
+const destinations: MatchableItem[] = [
+  {
+    name: "Gyeongbokgung Palace",
+    region: "gwanghwamun",
+    categories: ["history"],
+    accessibility: "caution",
+    tags: ["RoyalPalace", "History", "Hanbok"],
+  },
+  // ...
+];
+
+function DestinationsPage() {
+  const [visible, setVisible] = useState(destinations);
+
+  return (
+    <FilterBar
+      onChange={(state, matches) => setVisible(destinations.filter(matches))}
+    />
+  );
+}
 ```
 
-No Context/Provider or extra CSS setup is required — the component manages
-its own state via `useState` and imports its own stylesheet.
+An optional `ref` exposes an imperative API:
 
-## What's implemented
+```tsx
+const ref = useRef<FilterBarHandle>(null);
+ref.current?.getState();     // current FilterBarState
+ref.current?.buildMatcher(); // (item: MatchableItem) => boolean
+ref.current?.clearAll();     // reset every filter + the search box
+```
 
-- **Step 1 — Mobility needs**: list-style rows (Seniors, Pregnant people,
-  Caregivers with infants, Wheelchair users, Deaf or hard-of-hearing users),
-  each togglable, selected rows turn blue with a "Selected" badge. At least
-  one selection is required to advance.
-- **Step 2 — Travel interests**: 2×2 icon card grid (History & Heritage,
-  Arts & Culture, Nature & Leisure, Shopping & Entertainment). At least one
-  selection is required to advance.
-- **Step 3 — Travel schedule**: a real calendar (6-week grid, so the card
-  height stays constant across months). Click once for a same-day trip,
-  click a second day to extend into a range in either direction. Fully
-  optional — Continue is always enabled here, so pressing it with nothing
-  picked simply advances with an empty schedule.
-- **Step 4 — Your preferences**: a summary card listing the selected
-  mobility, category, and schedule pills, with a "Show all routes" link and
-  a "Show my personalized routes" primary button.
-- **Navigation**: `← Back` (top-left, from Step 2 onward only — there's
-  nothing before Step 1 to return to) and a bottom-right `Continue` /
-  `Show my personalized routes` pill button. There is no "Skip" button
-  anywhere in the bottom bar.
-- **Progress**: 4-dot indicator instead of a progress bar.
-- **Layout**: the whole flow is centered — both horizontally and vertically
-  — in the viewport as a moderately-sized card, at an enlarged type/spacing
-  scale, rather than stretched edge-to-edge.
-- **Filtering utility**: `filterPlaces`/`MOCK_PLACES` are exported (same
-  critical rule as before — an empty Step 1/2 selection means that
-  dimension doesn't exclude any place) for whichever page ends up consuming
-  the finished state. This component itself never renders a route/results
-  list — after Step 4 it shows a lightweight "Finding your routes…"
-  placeholder and calls `onFinish`.
+## Filtering logic
 
-## Design decisions worth knowing about
+OR within a single filter group, AND across different groups — checking
+both "Gwanghwamun" and "Yongsan" broadens results to either region, while
+additionally checking "All-Way" narrows those results down to accessible
+places in either region. The search box matches (case-insensitive
+substring) against an item's `name` or any of its `tags`, ANDed with
+every other filter group.
 
-- **Mandatory selection is preserved.** Steps 1 & 2 still require at least
-  one pick before advancing — this was an explicit rule from earlier in
-  the project, and the reference screens didn't contradict it (both
-  screenshots already show selections made).
-- **No Skip button anywhere** — not in the bottom bar, and not as a
-  separate in-card link either. Step 3 (schedule) is still fully optional:
-  Continue is always enabled there, so pressing it with nothing picked
-  simply advances with an empty schedule.
-- **Two distinct Step 4 exits.** "Show my personalized routes" completes
-  onboarding using the collected filters (`useFilters: true`); the in-card
-  "Show all routes" link completes onboarding requesting every route,
-  unfiltered (`useFilters: false`).
-- **"← Back" only renders from Step 2 onward** — there's nothing earlier
-  than Step 1 to return to, so no `onExit` callback is needed.
-- **Logo and font are the real assets**, not a recreation — `assets/allways-logo.png`
-  (transparent background) is rendered directly via `<img>`, and all four
-  official APHont files (American Printing House for the Blind) —
-  `APHontRegular.woff2`, `APHontBold.woff2`, `APHontItalic.woff2`,
-  `APHontBoldItalic.woff2` — are wired up via `@font-face` in the
-  stylesheet (regular/bold × normal/italic, matched by `font-weight` and
-  `font-style`). This component itself doesn't render italic text anywhere,
-  but the italic weights are available for any host-app content sharing
-  this font stack. Brand colors (`--brand-blue: #0158f5`, `--brand-orange:
-  #fd7237`) were sampled directly from the logo file's pixels, not
-  eyeballed.
-- Font-family stack is `"APHont", "Helvetica Neue", Helvetica, Arial,
-  sans-serif`, scoped to `.allways-flow` so it doesn't leak onto a host page
-  when embedded. Falls back gracefully if the woff2 files are ever missing.
+## Layout
 
-## Demo
+Region, Category, Accessibility, and the search box all sit in one
+`flex-wrap: nowrap` row. If the row is wider than its container it
+scrolls horizontally instead of wrapping to a second line. Each filter
+group's `<legend>` stays in the DOM for screen readers but is visually
+hidden, since the pill labels themselves (e.g. "Gwanghwamun", "History &
+Heritage") are already self-descriptive.
 
-`demo.html` (delivered alongside this component) is a fully self-contained,
-offline interactive demo — React, ReactDOM, Babel, the real logo, and all
-four font files are embedded inline, so it opens and runs in any browser
-with no build step and no network access. It's a demo convenience only;
-use the `.tsx`/`.css`/`assets/` files above for your actual project.
+There is intentionally no Travel Schedule / date filter — an earlier
+version of this component had one; it's been removed.
 
-## Verified
+## Map overlay usage
 
-Type-checked with `tsc --noEmit` (in strict mode) and exercised end-to-end
-with `react-test-renderer`: no Skip button/link exists anywhere on any
-step, `← Back` is absent on Step 1 and present on Steps 2-4,
-mandatory-selection gating on Steps 1-2, calendar range selection,
-Continue advancing correctly with an empty schedule, and both ways to
-leave Step 4 ("Show my personalized routes" / "Show all routes"). Also
-confirmed visually with Playwright screenshots across all four steps for
-the centered/enlarged layout and the real logo/font rendering correctly.
+This bar is designed to float across the top of a Google Map, not just
+sit in normal page flow. Every pill and the search input carry a soft
+drop shadow by default so they stay legible over busy map imagery. To
+actually position it as an overlay, give the map container
+`position: relative` and pass the `filter-bar--overlay` modifier through
+the `className` prop:
+
+```tsx
+<div style={{ position: "relative" }}>
+  <GoogleMap ... />
+  <FilterBar className="filter-bar--overlay" onChange={...} />
+</div>
+```
+
+`filter-bar--overlay` absolutely positions the bar near the top of its
+nearest positioned ancestor with a sensible z-index. Omit it (the
+default) to let the bar sit inline in normal document flow.
+
+## Accessibility badges
+
+The All-Way / Step-Way / Re-Way / Not surveyed pills use the real
+verdict-badge icons (check-circle, warning-triangle, no-entry-circle,
+confused-face) and the final approved tooltip copy from 명진's
+`verdict-badge.js` / `verdict-badge.css` asset — ported into React
+(`VerdictBadge` / `VerdictAccessibilityOption` in `FilterBar.tsx`) rather
+than loaded as a separate `<script>`, so this stays a single
+dependency-free component.
+
+**One intentional deviation from the source asset**: `.verdict-badge--caution`
+(Step-Way) uses a solid opaque background (`#fef7da`) in `FilterBar.css`
+instead of the asset's translucent `rgba(250, 204, 21, 0.16)`. The
+translucent version lets whatever sits behind the pill (e.g. the map)
+bleed through and look inconsistent with the other three badges, which
+are already opaque. `#fef7da` is that same rgba value pre-composited
+over white, so it looks identical on a plain background but stays solid
+everywhere else. Everything else is applied verbatim from the asset.
+
+**Tooltip behavior**: hovering or focusing a badge opens its detail
+tooltip *below* the pill. It's rendered through a React portal straight
+into `document.body` (not as a DOM child of the badge) — this is a
+structural fix, not a style choice: `.filter-bar__form` uses
+`overflow-x: auto` / `overflow-y: hidden` to get its single-row
+horizontal-scroll layout, and that `overflow-y: hidden` would otherwise
+clip the tooltip the instant it needs more vertical space than the row
+itself (the tooltip is much taller than the ~48px row). The portal
+sidesteps that entirely, and the tooltip's position is recomputed from
+the badge's real on-screen position on every hover/focus and while
+scrolling, so it stays correctly anchored even if the row is scrolled
+horizontally underneath it.
+
+## Before shipping
+
+- **APHont license**: the real font files are included in `fonts/` —
+  confirm NASA's license covers your intended use before shipping it
+  publicly.
