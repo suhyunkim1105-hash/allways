@@ -1,0 +1,470 @@
+/* ============================================================================
+   AllWaysOnboardingFlow.css
+   Visual theme matching the AllWays reference screens: light gray-blue page
+   background, brand blue + orange accents (sampled directly from the
+   provided logo file), list-row / icon-card / calendar / summary layouts,
+   and a Back / Continue bottom bar. The whole flow is centered — both
+   horizontally and vertically — in the viewport as a moderately-sized card
+   rather than stretched edge-to-edge, at an enlarged type/spacing scale.
+
+   Assets expected alongside this file (see ./assets/):
+     - allways-logo.png       (real logo, transparent background)
+     - APHontRegular.woff2    (font-weight: 400)
+     - APHontBold.woff2       (font-weight: 700)
+   ============================================================================ */
+
+@font-face {
+  font-family: 'APHont';
+  src: url('./assets/APHontRegular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'APHont';
+  src: url('./assets/APHontBold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.allways-flow {
+  /* Colors sampled directly from assets/allways-logo.png */
+  --brand-blue: #0158f5;
+  --brand-blue-dark: #0045c9;
+  --brand-orange: #fd7237;
+  --page-bg: #eef1f6;
+  --card-bg: #ffffff;
+  --text-dark: #16181d;
+  --text-gray: #6b7280;
+  --text-gray-light: #9aa2b1;
+  --border-gray: #e6e9f0;
+  --pill-bg: #e4ebff;
+  --pill-text: #0158f5;
+  --shadow-card: 0 2px 10px rgba(22, 24, 29, 0.06);
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+
+  font-family: 'APHont', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--page-bg);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.allways-flow * {
+  box-sizing: border-box;
+}
+
+.allways-flow__page {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 8px 0;
+}
+
+/* --- Header: Back link (Step 2+ only) + AllWays logo, always right-aligned --- */
+.allways-header {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.allways-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text-dark);
+  font-size: 17px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.allways-back:disabled {
+  color: var(--text-gray-light);
+  cursor: default;
+}
+
+.allways-logo-img {
+  height: 30px;
+  width: auto;
+  display: block;
+  margin-left: auto;
+}
+
+/* --- Progress dots --- */
+.allways-progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 28px 0 10px;
+}
+
+.allways-progress-dots__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c7cedb;
+}
+
+.allways-progress-dots__dot--active {
+  width: 12px;
+  height: 12px;
+  background: var(--brand-blue);
+}
+
+/* --- Title block --- */
+.allways-title-block {
+  text-align: center;
+  margin: 24px 0 28px;
+}
+
+.allways-title-block h2 {
+  margin: 0 0 8px;
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.allways-title-block p {
+  margin: 0;
+  color: var(--text-gray);
+  font-size: 16px;
+}
+
+/* --- Step 1: list-style option rows --- */
+.allways-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.allways-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+  font-size: 18px;
+  color: var(--text-dark);
+  cursor: pointer;
+  text-align: left;
+}
+
+.allways-list-row--selected {
+  background: var(--brand-blue);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.allways-list-row__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.allways-list-row__radio {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #d7dce6;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.allways-list-row--selected .allways-list-row__radio {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: var(--brand-blue);
+}
+
+.allways-list-row__badge {
+  font-size: 14px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  padding: 5px 13px;
+  border-radius: var(--radius-pill);
+}
+
+/* --- Step 2: 2x2 icon card grid --- */
+.allways-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.allways-icon-card {
+  position: relative;
+  text-align: left;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+  padding: 22px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.allways-icon-card--selected {
+  background: var(--brand-blue);
+  box-shadow: none;
+}
+
+.allways-icon-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  background: #ffe6d6;
+}
+
+.allways-icon-card__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.allways-icon-card--selected .allways-icon-card__title {
+  color: #ffffff;
+}
+
+.allways-icon-card__desc {
+  font-size: 14px;
+  color: var(--text-gray);
+  line-height: 1.4;
+}
+
+.allways-icon-card--selected .allways-icon-card__desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.allways-icon-card__check {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #d7dce6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.allways-icon-card--selected .allways-icon-card__check {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: var(--brand-blue);
+}
+
+/* --- Step 3: calendar --- */
+.allways-calendar-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.allways-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.allways-calendar-nav-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 19px;
+  color: var(--text-dark);
+  padding: 6px 10px;
+}
+
+.allways-calendar-weekdays,
+.allways-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.allways-calendar-weekdays {
+  margin-bottom: 6px;
+}
+
+.allways-calendar-weekdays span {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-gray-light);
+  padding: 6px 0;
+}
+
+.allways-calendar-day {
+  border: none;
+  background: none;
+  aspect-ratio: 1 / 1;
+  font-size: 15px;
+  color: var(--text-dark);
+  cursor: pointer;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.allways-calendar-day--muted {
+  color: var(--text-gray-light);
+  cursor: default;
+}
+
+.allways-calendar-day--in-range {
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  border-radius: 0;
+}
+
+.allways-calendar-day--endpoint {
+  background: var(--brand-blue);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* --- Step 4: summary --- */
+.allways-summary-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 26px;
+}
+
+.allways-summary-section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.allways-summary-section:first-child {
+  padding-top: 0;
+}
+
+.allways-summary-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.allways-summary-section__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-gray);
+  margin-bottom: 12px;
+}
+
+.allways-summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.allways-pill {
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 7px 15px;
+  border-radius: var(--radius-pill);
+}
+
+.allways-pill--muted {
+  background: var(--border-gray);
+  color: var(--text-gray);
+}
+
+.allways-summary-footer {
+  text-align: center;
+  margin-top: 22px;
+}
+
+.allways-summary-footer__link {
+  background: none;
+  border: none;
+  color: var(--brand-blue);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.allways-summary-footer__hint {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--text-gray-light);
+}
+
+/* --- Redirecting / fallback completion screen --- */
+.allways-redirect {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.allways-redirect h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.allways-redirect p {
+  color: var(--text-gray);
+  font-size: 16px;
+}
+
+/* --- Bottom action bar: Continue only, right-aligned --- */
+.allways-bottom-bar {
+  margin-top: 32px;
+  padding: 20px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.allways-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-blue);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 15px 28px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.allways-continue-btn:disabled {
+  background: #b7c4e8;
+  cursor: default;
+}
