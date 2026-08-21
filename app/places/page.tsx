@@ -4,30 +4,32 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import PlaceCard from "@/components/PlaceCard";
+import FilterBar, { type Verdict } from "@/components/FilterBar_yiryeong";
 import { getPlaces, getSurvey } from "@/lib/data";
 import { verdictRank } from "@/lib/verdict";
 import { regionEn } from "@/lib/i18n";
 
 const REGIONS = [["광화문", "Gwanghwamun"], ["용산", "Yongsan"]] as const;
-const CATEGORIES = ["History & Heritage", "Arts & Culture", "Nature & Leisure", "Shopping & Entertainment"] as const;
-const VERDICTS = [["초록", "● Accessible"], ["노랑", "▲ Caution"], ["빨강", "■ Difficult"], ["정보없음", "○ Not surveyed"]] as const;
+const VERDICTS: [Verdict, string][] = [
+  ["초록", "● Accessible"],
+  ["노랑", "▲ Caution"],
+  ["빨강", "■ Difficult"],
+  ["정보없음", "○ Not surveyed"],
+];
 
-const chip = (on: boolean) =>
-  `rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors ${
-    on ? "border-brand bg-brand font-bold text-white" : "border-line bg-surface text-ink hover:border-brand"
-  }`;
+function toggle<T>(arr: T[], set: (v: T[]) => void, v: T) {
+  set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+}
 
 function PlacesInner() {
   const q = (useSearchParams().get("q") || "").trim().toLowerCase();
   const [region, setRegion] = useState<string[]>([]);
   const [category, setCategory] = useState<string[]>([]);
-  const [verdict, setVerdict] = useState<string[]>([]);
+  const [verdict, setVerdict] = useState<Verdict[]>([]);
   const [sort, setSort] = useState<"verdict" | "name">("verdict");
-  const toggle = (arr: string[], set: (v: string[]) => void, v: string) =>
-    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   let list = getPlaces().filter((p) => {
-    const v = getSurvey(p.place_id)?.verdict || "정보없음";
+    const v = (getSurvey(p.place_id)?.verdict || "정보없음") as Verdict;
     const hay = `${p.name_en} ${p.name_ko} ${p.category} ${p.tags.join(" ")}`.toLowerCase();
     return (
       (q === "" || hay.includes(q)) &&
@@ -36,6 +38,7 @@ function PlacesInner() {
       (verdict.length === 0 || verdict.includes(v))
     );
   });
+
   list = [...list].sort((a, b) =>
     sort === "name"
       ? a.name_en.localeCompare(b.name_en)
@@ -69,26 +72,20 @@ function PlacesInner() {
       </div>
 
       <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {REGIONS.map(([v, label]) => (
-            <button key={v} onClick={() => toggle(region, setRegion, v)} aria-pressed={region.includes(v)} className={chip(region.includes(v))}>
-              {label}
-            </button>
-          ))}
-          <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
-          {CATEGORIES.map((c) => (
-            <button key={c} onClick={() => toggle(category, setCategory, c)} aria-pressed={category.includes(c)} className={chip(category.includes(c))}>
-              {c}
-            </button>
-          ))}
-        </div>
+        {/* Region + Category + Accessibility pill rows — now 이령's
+            FilterBar component (components/FilterBar_yiryeong.tsx)
+            instead of hand-rolled buttons. This page still owns the
+            actual state/filtering; FilterBar is just the controlled
+            pill UI on top of it. */}
+        <FilterBar
+          region={region}
+          category={category}
+          verdict={verdict}
+          onToggleRegion={(v) => toggle(region, setRegion, v)}
+          onToggleCategory={(v) => toggle(category, setCategory, v)}
+          onToggleVerdict={(v) => toggle(verdict, setVerdict, v)}
+        />
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          {VERDICTS.map(([v, label]) => (
-            <button key={v} onClick={() => toggle(verdict, setVerdict, v)} aria-pressed={verdict.includes(v)} className={chip(verdict.includes(v))}>
-              {label}
-            </button>
-          ))}
-          <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
           <label className="text-[12.5px] text-muted">
             Sort
             <select value={sort} onChange={(e) => setSort(e.target.value as never)}
@@ -135,7 +132,6 @@ function PlacesInner() {
           {list.map((p) => <PlaceCard key={p.place_id} place={p} />)}
         </div>
       )}
-
       <p className="mt-8 text-[11.5px] text-muted">
         A blank field means we have not measured that item yet. It never means the feature is absent.
         Regions shown: {REGIONS.map(([v]) => regionEn(v)).join(", ")}.
