@@ -267,7 +267,7 @@ function getCalendarGridDays(year: number, monthIndex: number): Date[] {
 // ----------------------------------------------------------------------------
 
 function AllWaysLogo() {
-  return <img src={logoUrl} alt="AllWays" className="allways-logo-img" />;
+  return <img src={logoUrl.src} alt="AllWays" className="allways-logo-img" />;
 }
 
 // ----------------------------------------------------------------------------
